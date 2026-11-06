@@ -191,6 +191,7 @@ final class ScoreReaderState {
     private(set) var scoreParts: [ScorePart]
     var pendingPitchClass: Int?
     var pendingMIDIPitch: Int?
+    var selectedPercussionPitch: Int?
     var pendingPreferFlats = false
     var pendingAccidentalKind: ScoreAccidentalKind?
     var stackedChordInputEnabled = false
@@ -232,9 +233,10 @@ final class ScoreReaderState {
     @ObservationIgnored var deferredPagePrefetchTask: Task<Void, Never>?
     @ObservationIgnored var editingStateTask: Task<Void, Never>?
     @ObservationIgnored var noteEntryPreviewTask: Task<Void, Never>?
+    @ObservationIgnored var noteEntryPreviewTarget: (pageIndex: Int, normalizedPoint: CGPoint)?
     @ObservationIgnored var measureRangePreviewTask: Task<Void, Never>?
     var editingStateRevision = 0
-    var noteEntryPreviewRevision = 0
+    @ObservationIgnored var noteEntryPreviewRevision = 0
     var measureRangePreviewRevision = 0
     var autosaveRevision = 0
     var playbackWarmupRevision = 0
@@ -255,13 +257,6 @@ final class ScoreReaderState {
     var activeMIDIPitches: Set<Int> = []
     var pendingMIDIChordPitches: Set<Int> = []
     @ObservationIgnored var midiChordCaptureTask: Task<Void, Never>?
-
-    // Tracks the most recent Pencil aim (hover/fine-tune) so a note-entry tap can
-    // commit exactly where the live preview ghost was shown, rather than the tap's
-    // lift point, which drifts a few points as the tip comes down.
-    var lastPencilAimNormalizedPoint: CGPoint?
-    var lastPencilAimPageIndex: Int?
-    var lastPencilAimTimestamp: Date?
 
     var pageCount: Int {
         activePageCount
@@ -478,10 +473,7 @@ final class ScoreReaderState {
         interactionMode = .leavingEdit
         stopMIDIInput()
         clearMeasureRangePreview()
-        clearPencilAimForModeTransition()
-        noteEntryPreviewTask?.cancel()
-        noteEntryPreviewTask = nil
-        noteEntryPreview = nil
+        clearNoteEntryPreview()
         pendingAccidentalKind = nil
         pendingPitchClass = nil
         pendingMIDIPitch = nil

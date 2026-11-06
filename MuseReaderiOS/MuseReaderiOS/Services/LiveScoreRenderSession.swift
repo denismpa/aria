@@ -958,6 +958,23 @@ actor LiveScoreRenderSession {
         return editState
     }
 
+    func insertPercussionNote(pageIndex: Int, normalizedPoint: CGPoint, midiPitch: Int) throws -> ScoreEditingState {
+        guard supportsEditing else {
+            return inactiveEditingState()
+        }
+
+        let editState = try makeEditingState(
+            from: bridgeSession.insertPercussionNote(
+                pageIndex: pageIndex,
+                normalizedX: normalizedPoint.x,
+                normalizedY: normalizedPoint.y,
+                midiPitch: midiPitch
+            )
+        )
+        invalidateCachedPlaybackArtifacts()
+        return editState
+    }
+
     func insertPitchAtCursor(_ pitchClass: Int, preferFlats: Bool, addToCurrentChord: Bool = false) throws -> ScoreEditingState {
         #if os(Android) && ARIA_PHONE_AUDIT
         AndroidPhoneAuditLog.mark("insert_pitch_worker_start")
@@ -1006,19 +1023,33 @@ actor LiveScoreRenderSession {
         return editState
     }
 
-    func noteEntryPreview(pageIndex: Int, normalizedPoint: CGPoint, duration: ScoreNoteDuration, isRest: Bool, accidentalKind: ScoreAccidentalKind?) throws -> ScoreNoteEntryPreview? {
+    func noteEntryPreview(pageIndex: Int, normalizedPoint: CGPoint, duration: ScoreNoteDuration,
+                          isRest: Bool, accidentalKind: ScoreAccidentalKind?,
+                          percussionPitch: Int? = nil) throws -> ScoreNoteEntryPreview? {
+        try Task.checkCancellation()
         guard supportsEditing else {
             return nil
         }
 
-        let bridgePreview = try bridgeSession.noteEntryPreview(
-            pageIndex: pageIndex,
-            normalizedX: Double(normalizedPoint.x),
-            normalizedY: Double(normalizedPoint.y),
-            durationCode: duration.rawValue,
-            rest: isRest,
-            accidentalKind: accidentalKind?.rawValue ?? -1
-        )
+        let bridgePreview: MSRNoteEntryPreviewInfo
+        if let percussionPitch, !isRest {
+            bridgePreview = try bridgeSession.percussionNoteEntryPreview(
+                pageIndex: pageIndex,
+                normalizedX: Double(normalizedPoint.x),
+                normalizedY: Double(normalizedPoint.y),
+                durationCode: duration.rawValue,
+                midiPitch: percussionPitch
+            )
+        } else {
+            bridgePreview = try bridgeSession.noteEntryPreview(
+                pageIndex: pageIndex,
+                normalizedX: Double(normalizedPoint.x),
+                normalizedY: Double(normalizedPoint.y),
+                durationCode: duration.rawValue,
+                rest: isRest,
+                accidentalKind: accidentalKind?.rawValue ?? -1
+            )
+        }
 
         guard !bridgePreview.overlayImageData.isEmpty else {
             return nil
@@ -1680,6 +1711,15 @@ actor LiveScoreRenderSession {
             canUndo: editState.canUndo,
             canRedo: editState.canRedo,
             activeStaffIsPercussion: editState.activeStaffIsPercussion,
+            percussionInstruments: editState.percussionInstruments.map { instrument in
+                ScorePercussionInstrument(
+                    midiPitch: instrument.midiPitch,
+                    name: instrument.name,
+                    staffLine: instrument.staffLine,
+                    voice: instrument.voice,
+                    notehead: instrument.notehead
+                )
+            },
             createMultiMeasureRests: editState.createMultiMeasureRests,
             hideEmptyStaves: editState.hideEmptyStaves,
             staffSpacingSpatium: editState.staffSpacingSpatium,

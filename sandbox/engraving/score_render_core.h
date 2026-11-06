@@ -198,6 +198,14 @@ struct NoteEntryPreviewState {
     std::vector<std::uint8_t> overlayPngData;
 };
 
+struct PercussionInstrument {
+    int midiPitch = -1;
+    std::string name;
+    int staffLine = 0;
+    int voice = 0;
+    int notehead = 0;
+};
+
 struct ScoreEditState {
     ScoreSelectionState selection;
     bool noteInputEnabled = false;
@@ -209,6 +217,7 @@ struct ScoreEditState {
     bool canUndo = false;
     bool canRedo = false;
     bool activeStaffIsPercussion = false;
+    std::vector<PercussionInstrument> percussionInstruments;
     bool createMultiMeasureRests = false;
     bool hideEmptyStaves = false;
     double pageWidthMillimeters = 210.0;
@@ -451,6 +460,8 @@ public:
     bool insertNote(int pageIndex, double normalizedX, double normalizedY, ScoreEditState& output, std::string& errorMessage);
     bool insertNoteWithAccidental(int pageIndex, double normalizedX, double normalizedY, int accidentalKind, ScoreEditState& output, std::string& errorMessage);
     bool insertNoteWithPitch(int pageIndex, double normalizedX, double normalizedY, int pitchClass, bool preferFlats, ScoreEditState& output, std::string& errorMessage);
+    bool insertPercussionNote(int pageIndex, double normalizedX, double normalizedY, int midiPitch, ScoreEditState& output, std::string& errorMessage);
+    bool percussionNoteEntryPreview(int pageIndex, double normalizedX, double normalizedY, int durationCode, int midiPitch, NoteEntryPreviewState& output, std::string& errorMessage);
     bool noteEntryPreview(int pageIndex, double normalizedX, double normalizedY, int durationCode, bool rest, int accidentalKind, NoteEntryPreviewState& output, std::string& errorMessage);
     bool insertPitchAtCursor(int pitchClass, bool preferFlats, bool addToCurrentChord, ScoreEditState& output, std::string& errorMessage);
     bool insertMIDIPitchAtCursor(int midiPitch, bool preferFlats, bool addToCurrentChord, ScoreEditState& output, std::string& errorMessage);
