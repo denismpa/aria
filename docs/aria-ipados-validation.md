@@ -1,4 +1,4 @@
-# Aria iPadOS build and validation
+# Magistris iPadOS build and validation
 
 Run the commands from the root of the checked-out `feature/percussion-editing` worktree. Record the commit with `git rev-parse HEAD`.
 
@@ -55,7 +55,7 @@ For a distribution archive, set `ARIA_TEAM_ID` and `ARIA_BUNDLE_ID` to values fo
 ```sh
 xcodebuild archive -project MuseReaderiOS/Aria.xcodeproj -scheme Aria \
   -configuration Release -destination 'generic/platform=iOS' \
-  -archivePath "$ARIA_OUT/Aria.xcarchive" \
+  -archivePath "$ARIA_OUT/Magistris.xcarchive" \
   -derivedDataPath "$ARIA_OUT/DerivedData-Device" \
   DEVELOPMENT_TEAM="$ARIA_TEAM_ID" PRODUCT_BUNDLE_IDENTIFIER="$ARIA_BUNDLE_ID" \
   MUSEREADER_QT_HOST_SDK_DIR="$ARIA_QT_HOST" \
@@ -68,7 +68,7 @@ In Xcode Organizer, export an Ad Hoc IPA to install on the devices in its profil
 
 1. Create a score and import an existing MSCZ. Add a five-line drum kit and a single-line unpitched instrument, such as snare drum. Select a note or rest in the staff, choose an instrument from the percussion menu, and tap **Enter Note**. Check notes, rests, durations, voices and noteheads, including kit sounds sharing a staff position and a score with a custom drum map.
 2. Use Pencil to select and insert on both staves and on a pitched staff. Choose **By staff position** to follow the tip vertically or choose an instrument to fix its staff line. Check adjacent staff positions, zoom and rotation, cancellation during a gesture, finger scrolling and zooming, and quick successive entry. Verify that a gesture commits one edit and that undo/redo restores the previous notation.
-3. Save, reopen in Aria, and export MSCZ. Open it in MuseScore Studio 4.7.6, confirm the 4.70 file version and the resulting drum mapping, notation and playback. Verify a linked part if the score has one.
+3. Save, reopen in Magistris, and export MSCZ. Open it in MuseScore Studio 4.7.6, confirm the 4.70 file version and the resulting drum mapping, notation and playback. Verify a linked part if the score has one.
 
 ## Build environment observed
 

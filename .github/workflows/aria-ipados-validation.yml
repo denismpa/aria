@@ -1,4 +1,4 @@
-name: Aria iPadOS validation
+name: Magistris iPadOS validation
 
 on:
   push:
@@ -41,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           qt="$RUNNER_TEMP/aria-qt/6.11.0"
-          archive="$RUNNER_TEMP/Aria.xcarchive"
+          archive="$RUNNER_TEMP/Magistris.xcarchive"
           xcodebuild archive -project MuseReaderiOS/Aria.xcodeproj -scheme Aria \
             -configuration Release -destination 'generic/platform=iOS' \
             -archivePath "$archive" -derivedDataPath "$RUNNER_TEMP/AriaDerivedData" \
@@ -49,12 +49,13 @@ jobs:
             MUSEREADER_QT_HOST_SDK_DIR="$qt/macos" MUSEREADER_QT_IOS_SDK_DIR="$qt/ios"
           app="$archive/Products/Applications/Aria.app"
           test -f "$app/Aria"
+          test "$(plutil -extract CFBundleDisplayName raw -o - "$app/Info.plist")" = Magistris
           plutil -extract UIDeviceFamily json -o - "$app/Info.plist" | jq -e 'index(2) != null'
-          ditto -c -k --keepParent "$archive" "$RUNNER_TEMP/Aria-unsigned.xcarchive.zip"
+          ditto -c -k --keepParent "$archive" "$RUNNER_TEMP/Magistris-unsigned.xcarchive.zip"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Aria-unsigned-${{ github.sha }}
-          path: ${{ runner.temp }}/Aria-unsigned.xcarchive.zip
+          name: Magistris-unsigned-${{ github.sha }}
+          path: ${{ runner.temp }}/Magistris-unsigned.xcarchive.zip
           if-no-files-found: error
           retention-days: 7

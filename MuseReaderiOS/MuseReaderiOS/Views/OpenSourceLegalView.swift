@@ -13,8 +13,8 @@ struct OpenSourceLegalView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    LegalSection(title: "Aria") {
-                        Text("Aria includes MuseScore Studio-derived notation, engraving, MusicXML, playback, and render-core code. MuseScore Studio is licensed under the GNU General Public License version 3.")
+                    LegalSection(title: LibraryBrand.displayName) {
+                        Text("This app includes MuseScore Studio-derived notation, engraving, MusicXML, playback, and render-core code. MuseScore Studio is licensed under the GNU General Public License version 3.")
                         Text("The source code for the corresponding release is available with the public source release for this app.")
                         Link(destination: URL(string: "https://github.com/hdi200/aria")!) {
                             Label("github.com/hdi200/aria", systemImage: "arrow.up.right.square")
@@ -35,7 +35,7 @@ struct OpenSourceLegalView: View {
                     }
 
                     LegalSection(title: "Qt Framework Notice") {
-                        Text("Aria is built with Qt libraries and tools. The applicable Qt license terms depend on the exact Qt distribution used for the release build.")
+                        Text("This app is built with Qt libraries and tools. The applicable Qt license terms depend on the exact Qt distribution used for the release build.")
                         Text("The release source package includes the corresponding Qt notices and applicable license text.")
                         Link(destination: URL(string: "https://www.qt.io/licensing")!) {
                             Label("Qt licensing information", systemImage: "arrow.up.right.square")
