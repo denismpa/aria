@@ -686,6 +686,9 @@ struct ScoreReaderView: View {
                 editingState: readerState.editingState,
                 pendingPitchClass: readerState.pendingPitchClass,
                 pendingMIDIPitch: readerState.pendingMIDIPitch,
+                selectedPercussionPitch: readerState.selectedPercussionPitch,
+                selectPercussionInstrumentAction: readerState.selectPercussionInstrument,
+                enterPercussionNoteAction: readerState.enterSelectedPercussionNote,
                 stackedChordInputEnabled: readerState.stackedChordInputEnabled,
                 showsCompactModeToolbar: !isPhoneInterface,
                 placesModeToolbarAbove: placesPhoneModeBarAboveEntry,
@@ -2325,7 +2328,7 @@ struct ScoreReaderView: View {
             floatingPaletteDockedLeft: floatingPaletteDockedLeft,
             activeNotationTopInset: editingEnabled ? activeNotationTopInset(isCompactPhoneLayout: isCompactPhoneLayout) : 0,
             activeNotationBottomInset: editingEnabled ? activeNotationBottomInset(isCompactPhoneLayout: isCompactPhoneLayout, isPhoneLandscapeLayout: isPhoneLandscapeLayout) : 0,
-            allowsPencilInsertionFineTune: editingEnabled && readerState.editingState.noteInputEnabled,
+            allowsPencilInsertionFineTune: editingEnabled && readerState.pencilNoteEntryEnabled,
             noteEntryPreviewPitchClass: editingEnabled ? readerState.pendingPitchClass : nil,
             noteEntryPreviewIsRest: editingEnabled && readerState.editingState.noteInputInsertsRests,
             noteEntryPreviewDuration: readerState.editingState.duration,
@@ -2383,9 +2386,6 @@ struct ScoreReaderView: View {
             measureRangePreviewEndAction: readerState.clearMeasureRangePreview,
             measureRangeDragAction: { startPoint, endPoint in
                 readerState.selectMeasureRange(pageIndex: pageIndex, startNormalizedPoint: startPoint, endNormalizedPoint: endPoint)
-            },
-            pencilInsertionFineTuneAction: { startPoint, dropPoint in
-                readerState.handlePencilNoteEntryFineTune(pageIndex: pageIndex, startNormalizedPoint: startPoint, dropNormalizedPoint: dropPoint)
             },
             pencilHoverPreviewAction: { normalizedPoint in
                 readerState.updateNoteEntryPreview(pageIndex: pageIndex, normalizedPoint: normalizedPoint)
@@ -3764,14 +3764,8 @@ struct ScoreReaderView: View {
     }
 
     private func activatePencilNoteEntryMode() {
-        guard readerState.isEditingMode, pencilAutoNoteEntryAllowed else {
-            return
-        }
+        guard pencilAutoNoteEntryAllowed, readerState.activatePencilNoteEntry() else { return }
         selectedToolCategory = .notes
-        readerState.noteInputWasActivatedByPencil = true
-        if !readerState.editingState.noteInputEnabled {
-            readerState.setNoteInputEnabled(true)
-        }
     }
 
     private func selectModeFromToolbar() {
@@ -3789,10 +3783,13 @@ struct ScoreReaderView: View {
     }
 
     private func toggleNoteInputFromPencilDoubleTap() {
-        if readerState.editingState.noteInputEnabled {
+        guard readerState.isEditingMode else { return }
+        if readerState.pencilNoteEntryEnabled {
             selectModeFromToolbar()
         } else {
-            noteInputModeFromToolbar()
+            pencilAutoNoteEntryAllowed = ScoreReaderToolModePolicy.allowsAutomaticPencilNoteEntry(after: .chooseNoteInput)
+            activatePencilNoteEntryMode()
+            exitTextEntryFocusIfNeeded()
         }
     }
 

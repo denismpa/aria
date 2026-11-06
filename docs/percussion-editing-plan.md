@@ -1,9 +1,9 @@
 # Percussion editing on iPad — implementation specification
 
-Status: investigation / not yet implemented. Target: MuseScore Studio 4.7.6, MSCZ 4.70.
+Target format is MuseScore Studio 4.7.6 (MSCZ 4.70). This document records the design and acceptance criteria. See [iPadOS build and validation](aria-ipados-validation.md) for installation and device checks.
 
 ## Problem
-Aria currently rejects non-standard staves in native note entry. This blocks five-line drum kits and one-line unpitched percussion despite the bundled MuseScore engraving engine supporting them.
+The previous native note-entry path rejected non-standard staves. This blocked five-line drum kits and one-line unpitched percussion even when the score had a MuseScore drum mapping.
 
 ## Verified code paths
 - `sandbox/engraving/score_render_edit_commands.cpp`: `insertNoteWithPitch` rejects `!isStandardStaff` before `Score::putNote`; `noteEntryPreview`, `enterRestAtCursor`, and keyboard note entry also have standard-staff guards.

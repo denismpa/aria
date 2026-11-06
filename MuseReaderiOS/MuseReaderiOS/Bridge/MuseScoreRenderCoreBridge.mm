@@ -290,6 +290,16 @@ MSRPickupMeasureInfo *MakePickupMeasureInfo(const msr::render::PickupMeasureStat
 
 MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
 {
+    NSMutableArray<MSRPercussionInstrumentInfo *> *instruments =
+        [NSMutableArray arrayWithCapacity:editState.percussionInstruments.size()];
+    for (const auto& instrument : editState.percussionInstruments) {
+        NSString *name = [NSString stringWithUTF8String:instrument.name.c_str()] ?: @"";
+        [instruments addObject:[[MSRPercussionInstrumentInfo alloc] initWithMIDIPitch:instrument.midiPitch
+                                                                                name:name
+                                                                           staffLine:instrument.staffLine
+                                                                               voice:instrument.voice
+                                                                            notehead:instrument.notehead]];
+    }
     MSREditState *state = [[MSREditState alloc] initWithSelection:MakeSelectionInfo(editState.selection)
                                   noteInputEnabled:editState.noteInputEnabled
                              noteInputInsertsRests:editState.noteInputInsertsRests
@@ -299,6 +309,7 @@ MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
                                            canUndo:editState.canUndo
                                            canRedo:editState.canRedo
                          activeStaffIsPercussion:editState.activeStaffIsPercussion
+                           percussionInstruments:instruments
                             createMultiMeasureRests:editState.createMultiMeasureRests
                                      hideEmptyStaves:editState.hideEmptyStaves
                              pageWidthMillimeters:editState.pageWidthMillimeters
@@ -639,6 +650,27 @@ MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
 
 @end
 
+@implementation MSRPercussionInstrumentInfo
+
+- (instancetype)initWithMIDIPitch:(NSInteger)midiPitch
+                             name:(NSString *)name
+                        staffLine:(NSInteger)staffLine
+                            voice:(NSInteger)voice
+                         notehead:(NSInteger)notehead
+{
+    self = [super init];
+    if (self) {
+        _midiPitch = midiPitch;
+        _name = [name copy];
+        _staffLine = staffLine;
+        _voice = voice;
+        _notehead = notehead;
+    }
+    return self;
+}
+
+@end
+
 @implementation MSREditState
 
 - (instancetype)initWithSelection:(MSRSelectionInfo * _Nullable)selection
@@ -650,6 +682,7 @@ MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
                           canUndo:(BOOL)canUndo
                           canRedo:(BOOL)canRedo
          activeStaffIsPercussion:(BOOL)activeStaffIsPercussion
+           percussionInstruments:(NSArray<MSRPercussionInstrumentInfo *> *)percussionInstruments
            createMultiMeasureRests:(BOOL)createMultiMeasureRests
                     hideEmptyStaves:(BOOL)hideEmptyStaves
              pageWidthMillimeters:(double)pageWidthMillimeters
@@ -670,6 +703,7 @@ MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
         _canUndo = canUndo;
         _canRedo = canRedo;
         _activeStaffIsPercussion = activeStaffIsPercussion;
+        _percussionInstruments = [percussionInstruments copy];
         _createMultiMeasureRests = createMultiMeasureRests;
         _hideEmptyStaves = hideEmptyStaves;
         _pageWidthMillimeters = pageWidthMillimeters;
@@ -3066,6 +3100,39 @@ MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
 #endif
 }
 
+- (MSREditState *)insertPercussionNoteAtPageIndex:(NSInteger)pageIndex
+                                       normalizedX:(double)normalizedX
+                                       normalizedY:(double)normalizedY
+                                         midiPitch:(NSInteger)midiPitch
+                                             error:(NSError * _Nullable __autoreleasing *)error
+{
+#if defined(MUSEREADER_USE_SCORE_RENDER_CORE) && MUSEREADER_USE_SCORE_RENDER_CORE
+    if (!_session) {
+        if (error) {
+            *error = FailureError(@"The MuseScore render session is no longer available.");
+        }
+        return nil;
+    }
+
+    msr::render::ScoreEditState editState;
+    std::string errorMessage;
+    if (!_session->insertPercussionNote(static_cast<int>(pageIndex), normalizedX, normalizedY,
+                                       static_cast<int>(midiPitch), editState, errorMessage)) {
+        if (error) {
+            *error = FailureError(FailureMessage(errorMessage, @"The MuseScore render core could not place that percussion note there."));
+        }
+        return nil;
+    }
+
+    return MakeEditState(editState);
+#else
+    if (error) {
+        *error = UnavailableError(@"This build of Aria is not linked to MuseScore editing support yet.");
+    }
+    return nil;
+#endif
+}
+
 - (MSREditState *)insertPitchAtCursor:(NSInteger)pitchClass
                           preferFlats:(BOOL)preferFlats
                     addToCurrentChord:(BOOL)addToCurrentChord
@@ -3221,6 +3288,41 @@ MSREditState *MakeEditState(const msr::render::ScoreEditState& editState)
                                     errorMessage)) {
         if (error) {
             *error = FailureError(FailureMessage(errorMessage, @"The MuseScore render core could not preview note entry there."));
+        }
+        return nil;
+    }
+
+    return MakeNoteEntryPreviewInfo(previewState);
+#else
+    if (error) {
+        *error = UnavailableError(@"This build of Aria is not linked to MuseScore editing support yet.");
+    }
+    return nil;
+#endif
+}
+
+- (MSRNoteEntryPreviewInfo *)percussionNoteEntryPreviewAtPageIndex:(NSInteger)pageIndex
+                                                      normalizedX:(double)normalizedX
+                                                      normalizedY:(double)normalizedY
+                                                     durationCode:(NSInteger)durationCode
+                                                        midiPitch:(NSInteger)midiPitch
+                                                            error:(NSError * _Nullable __autoreleasing *)error
+{
+#if defined(MUSEREADER_USE_SCORE_RENDER_CORE) && MUSEREADER_USE_SCORE_RENDER_CORE
+    if (!_session) {
+        if (error) {
+            *error = FailureError(@"The MuseScore render session is no longer available.");
+        }
+        return nil;
+    }
+
+    msr::render::NoteEntryPreviewState previewState;
+    std::string errorMessage;
+    if (!_session->percussionNoteEntryPreview(static_cast<int>(pageIndex), normalizedX, normalizedY,
+                                             static_cast<int>(durationCode), static_cast<int>(midiPitch),
+                                             previewState, errorMessage)) {
+        if (error) {
+            *error = FailureError(FailureMessage(errorMessage, @"The MuseScore render core could not preview percussion entry there."));
         }
         return nil;
     }

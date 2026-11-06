@@ -675,6 +675,16 @@ enum ScoreEditRefreshScope: String, Sendable, Equatable {
     case all
 }
 
+struct ScorePercussionInstrument: Sendable, Equatable, Identifiable {
+    let midiPitch: Int
+    let name: String
+    let staffLine: Int
+    let voice: Int
+    let notehead: Int
+
+    var id: Int { midiPitch }
+}
+
 struct ScoreEditingState: Sendable, Equatable {
     var selection: ScoreSelectedElement?
     var noteInputEnabled: Bool
@@ -686,6 +696,7 @@ struct ScoreEditingState: Sendable, Equatable {
     var canUndo: Bool
     var canRedo: Bool
     var activeStaffIsPercussion: Bool
+    var percussionInstruments: [ScorePercussionInstrument] = []
     var createMultiMeasureRests: Bool
     var hideEmptyStaves: Bool
     var staffSpacingSpatium: Double

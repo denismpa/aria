@@ -44,7 +44,7 @@ The app autosaves supported edits to its managed score file. On iOS, imported sc
 
 ## MuseScore Compatibility
 
-The render core uses MuseScore Studio **4.7.5**, with Aria patches, and saves genuine **4.70-format** scores for desktop MuseScore Studio compatibility. Engine provenance, patches, and upgrade instructions are documented in [ENGINE.md](sandbox/engraving/compat/ENGINE.md); compatibility checks are in the [compatibility README](sandbox/engraving/compat/README.md).
+The render core uses MuseScore Studio **4.7.6**, with Aria patches, and saves genuine **4.70-format** scores for desktop MuseScore Studio compatibility. Engine provenance, patches, and upgrade instructions are documented in [ENGINE.md](sandbox/engraving/compat/ENGINE.md); compatibility checks are in the [compatibility README](sandbox/engraving/compat/README.md).
 
 ## Architecture
 
@@ -83,7 +83,9 @@ wc -c MuseReaderiOS/MuseReaderiOS/Resources/MuseScore_General.sf2
 
 ## iOS Build Requirements
 
-- macOS with Xcode and the iOS SDK.
+See the [iPadOS validation guide](docs/aria-ipados-validation.md) for device and distribution builds.
+
+- macOS with Xcode and the iOS 27.1 SDK or later.
 - CMake.
 - Ninja.
 - Git LFS.

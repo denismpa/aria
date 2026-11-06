@@ -532,6 +532,25 @@ isEditableText:(BOOL)isEditableText
 
 @end
 
+@interface MSRPercussionInstrumentInfo : NSObject
+
+@property (nonatomic, readonly) NSInteger midiPitch;
+@property (nonatomic, copy, readonly) NSString *name;
+@property (nonatomic, readonly) NSInteger staffLine;
+@property (nonatomic, readonly) NSInteger voice;
+@property (nonatomic, readonly) NSInteger notehead;
+
+- (instancetype)initWithMIDIPitch:(NSInteger)midiPitch
+                             name:(NSString *)name
+                        staffLine:(NSInteger)staffLine
+                            voice:(NSInteger)voice
+                         notehead:(NSInteger)notehead NS_DESIGNATED_INITIALIZER;
+
+- (instancetype)init NS_UNAVAILABLE;
++ (instancetype)new NS_UNAVAILABLE;
+
+@end
+
 @interface MSREditState : NSObject
 
 @property (nonatomic, strong, readonly, nullable) MSRSelectionInfo *selection;
@@ -544,6 +563,7 @@ isEditableText:(BOOL)isEditableText
 @property (nonatomic, readonly) BOOL canUndo;
 @property (nonatomic, readonly) BOOL canRedo;
 @property (nonatomic, readonly) BOOL activeStaffIsPercussion;
+@property (nonatomic, copy, readonly) NSArray<MSRPercussionInstrumentInfo *> *percussionInstruments;
 @property (nonatomic, readonly) BOOL createMultiMeasureRests;
 @property (nonatomic, readonly) BOOL hideEmptyStaves;
 @property (nonatomic, readonly) double pageWidthMillimeters;
@@ -562,6 +582,7 @@ isEditableText:(BOOL)isEditableText
                            canUndo:(BOOL)canUndo
                            canRedo:(BOOL)canRedo
              activeStaffIsPercussion:(BOOL)activeStaffIsPercussion
+               percussionInstruments:(NSArray<MSRPercussionInstrumentInfo *> *)percussionInstruments
              createMultiMeasureRests:(BOOL)createMultiMeasureRests
                       hideEmptyStaves:(BOOL)hideEmptyStaves
               pageWidthMillimeters:(double)pageWidthMillimeters
@@ -765,6 +786,11 @@ isEditableText:(BOOL)isEditableText
                                       pitchClass:(NSInteger)pitchClass
                                      preferFlats:(BOOL)preferFlats
                                            error:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(insertNote(pageIndex:normalizedX:normalizedY:pitchClass:preferFlats:));
+- (nullable MSREditState *)insertPercussionNoteAtPageIndex:(NSInteger)pageIndex
+                                              normalizedX:(double)normalizedX
+                                              normalizedY:(double)normalizedY
+                                                midiPitch:(NSInteger)midiPitch
+                                                    error:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(insertPercussionNote(pageIndex:normalizedX:normalizedY:midiPitch:));
 - (nullable MSREditState *)insertPitchAtCursor:(NSInteger)pitchClass
                                    preferFlats:(BOOL)preferFlats
                              addToCurrentChord:(BOOL)addToCurrentChord
@@ -785,6 +811,12 @@ isEditableText:(BOOL)isEditableText
                                                              rest:(BOOL)rest
                                                    accidentalKind:(NSInteger)accidentalKind
                                                             error:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(noteEntryPreview(pageIndex:normalizedX:normalizedY:durationCode:rest:accidentalKind:));
+- (nullable MSRNoteEntryPreviewInfo *)percussionNoteEntryPreviewAtPageIndex:(NSInteger)pageIndex
+                                                               normalizedX:(double)normalizedX
+                                                               normalizedY:(double)normalizedY
+                                                              durationCode:(NSInteger)durationCode
+                                                                 midiPitch:(NSInteger)midiPitch
+                                                                     error:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(percussionNoteEntryPreview(pageIndex:normalizedX:normalizedY:durationCode:midiPitch:));
 - (nullable MSREditState *)deleteSelectionWithError:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(deleteSelection());
 - (nullable MSREditState *)clearSelectedMeasureWithError:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(clearSelectedMeasure());
 - (nullable MSREditState *)removeSelectedMeasureWithError:(NSError * _Nullable * _Nullable)error NS_SWIFT_NAME(removeSelectedMeasure());

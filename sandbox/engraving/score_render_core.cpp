@@ -62,6 +62,7 @@
 #include "engraving/dom/tremolosinglechord.h"
 #include "engraving/dom/box.h"
 #include "engraving/dom/dynamic.h"
+#include "engraving/dom/drumset.h"
 #include "engraving/dom/elementgroup.h"
 #include "engraving/dom/excerpt.h"
 #include "engraving/dom/factory.h"
